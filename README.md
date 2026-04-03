@@ -50,6 +50,7 @@ Read the current network status once.
 
 --------------------
 
+
 ### addListener('internetStatusChange', ...)
 
 ```typescript
@@ -58,16 +59,17 @@ addListener(eventName: 'internetStatusChange', listenerFunc: (status: InternetSt
 
 Emits `internetStatusChange` when connectivity, reachability, or connection type changes.
 
-| Param              | Type                                                                                  |
-| ------------------ | ------------------------------------------------------------------------------------- |
-| **`eventName`**    | <code>'internetStatusChange'</code>                                                   |
-| **`listenerFunc`** | <code>(status: <a href="#internetstatus">InternetStatus</a>) =&gt; void</code>        |
+| Param              | Type                                                                           |
+| ------------------ | ------------------------------------------------------------------------------ |
+| **`eventName`**    | <code>'internetStatusChange'</code>                                            |
+| **`listenerFunc`** | <code>(status: <a href="#internetstatus">InternetStatus</a>) =&gt; void</code> |
 
 **Returns:** <code>Promise&lt;<a href="#pluginlistenerhandle">PluginListenerHandle</a>&gt;</code>
 
 **Since:** 0.0.1
 
 --------------------
+
 
 ### removeAllListeners()
 
@@ -81,16 +83,19 @@ Remove all listeners for this plugin.
 
 --------------------
 
+
 ### Interfaces
+
 
 #### InternetStatus
 
-| Prop                    | Type                                                        | Description                                                                                              |
-| ----------------------- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| **`connected`**         | <code>boolean</code>                                        | True when there is an active network path or interface (platform-specific).                               |
-| **`internetReachable`** | <code>boolean</code>                                        | True when the OS considers the network validated for general internet use.                                |
-| **`connectionType`**    | <code>'wifi' \| 'cellular' \| 'none' \| 'unknown'</code>   | Active transport when known: Wi-Fi, cellular, none, or unknown.                                          |
-| **`state`**             | <code>'offline' \| 'limited' \| 'online'</code>            | High-level state: fully offline, connected but not validated (`limited`), or `online`.                   |
+| Prop                    | Type                                                     | Description                                                                                                                                                          |
+| ----------------------- | -------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **`connected`**         | <code>boolean</code>                                     | True when there is an active network path or interface (platform-specific).                                                                                          |
+| **`internetReachable`** | <code>boolean</code>                                     | True when the OS considers the network validated for general internet use. On Android this uses `NET_CAPABILITY_VALIDATED`; on iOS it follows `NWPath` satisfaction. |
+| **`connectionType`**    | <code>'wifi' \| 'cellular' \| 'none' \| 'unknown'</code> | Active transport when known: Wi‑Fi, cellular, none, or unknown.                                                                                                      |
+| **`state`**             | <code>'offline' \| 'limited' \| 'online'</code>          | High-level state: fully offline, connected but not validated (`limited`), or `online`.                                                                               |
+
 
 #### PluginListenerHandle
 
