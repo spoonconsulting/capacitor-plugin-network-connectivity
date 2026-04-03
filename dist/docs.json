@@ -1,0 +1,130 @@
+{
+  "api": {
+    "name": "NetworkConnectivityPlugin",
+    "slug": "networkconnectivityplugin",
+    "docs": "",
+    "tags": [],
+    "methods": [
+      {
+        "name": "getStatus",
+        "signature": "() => Promise<InternetStatus>",
+        "parameters": [],
+        "returns": "Promise<InternetStatus>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Read the current network status once.",
+        "complexTypes": [
+          "InternetStatus"
+        ],
+        "slug": "getstatus"
+      },
+      {
+        "name": "addListener",
+        "signature": "(eventName: 'internetStatusChange', listenerFunc: (status: InternetStatus) => void) => Promise<PluginListenerHandle>",
+        "parameters": [
+          {
+            "name": "eventName",
+            "docs": "",
+            "type": "'internetStatusChange'"
+          },
+          {
+            "name": "listenerFunc",
+            "docs": "",
+            "type": "(status: InternetStatus) => void"
+          }
+        ],
+        "returns": "Promise<PluginListenerHandle>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Emits `internetStatusChange` when connectivity, reachability, or connection type changes.",
+        "complexTypes": [
+          "PluginListenerHandle",
+          "InternetStatus"
+        ],
+        "slug": "addlistenerinternetstatuschange-"
+      },
+      {
+        "name": "removeAllListeners",
+        "signature": "() => Promise<void>",
+        "parameters": [],
+        "returns": "Promise<void>",
+        "tags": [
+          {
+            "name": "since",
+            "text": "0.0.1"
+          }
+        ],
+        "docs": "Remove all listeners for this plugin.",
+        "complexTypes": [],
+        "slug": "removealllisteners"
+      }
+    ],
+    "properties": []
+  },
+  "interfaces": [
+    {
+      "name": "InternetStatus",
+      "slug": "internetstatus",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "connected",
+          "tags": [],
+          "docs": "True when there is an active network path or interface (platform-specific).",
+          "complexTypes": [],
+          "type": "boolean"
+        },
+        {
+          "name": "internetReachable",
+          "tags": [],
+          "docs": "True when the OS considers the network validated for general internet use.\nOn Android this uses `NET_CAPABILITY_VALIDATED`; on iOS it follows `NWPath` satisfaction.",
+          "complexTypes": [],
+          "type": "boolean"
+        },
+        {
+          "name": "connectionType",
+          "tags": [],
+          "docs": "Active transport when known: Wi‑Fi, cellular, none, or unknown.",
+          "complexTypes": [],
+          "type": "'wifi' | 'cellular' | 'none' | 'unknown'"
+        },
+        {
+          "name": "state",
+          "tags": [],
+          "docs": "High-level state: fully offline, connected but not validated (`limited`), or `online`.",
+          "complexTypes": [],
+          "type": "'offline' | 'limited' | 'online'"
+        }
+      ]
+    },
+    {
+      "name": "PluginListenerHandle",
+      "slug": "pluginlistenerhandle",
+      "docs": "",
+      "tags": [],
+      "methods": [],
+      "properties": [
+        {
+          "name": "remove",
+          "tags": [],
+          "docs": "",
+          "complexTypes": [],
+          "type": "() => Promise<void>"
+        }
+      ]
+    }
+  ],
+  "enums": [],
+  "typeAliases": [],
+  "pluginConfigs": []
+}
