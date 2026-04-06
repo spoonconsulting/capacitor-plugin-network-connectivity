@@ -1,6 +1,9 @@
 # node files
 node_modules
 
+# dist files
+dist
+
 # iOS files
 Pods
 Podfile.lock
