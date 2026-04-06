@@ -1,6 +1,5 @@
 package com.spoonconsulting.networkconnectivity;
 
-
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
@@ -14,8 +13,25 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+
 @CapacitorPlugin(name = "NetworkConnectivity")
 public class NetworkConnectivityPlugin extends Plugin {
+
+    private static final String[] PROBE_URLS = {
+        "https://www.google.com/generate_204",
+        "https://captive.apple.com",
+        "https://one.one.one.one",
+        "https://www.msftconnecttest.com/connecttest.txt"
+    };
+
+    private static final int PROBE_TIMEOUT_MS = 5000;
 
     @Nullable
     private ConnectivityManager connectivityManager;
@@ -32,6 +48,8 @@ public class NetworkConnectivityPlugin extends Plugin {
     @Nullable
     private Boolean lastReachable;
 
+    private final ExecutorService executor = Executors.newCachedThreadPool();
+
     @Override
     public void load() {
         connectivityManager =
@@ -42,7 +60,10 @@ public class NetworkConnectivityPlugin extends Plugin {
 
     @PluginMethod
     public void getStatus(PluginCall call) {
-        call.resolve(buildStatus());
+        executor.execute(() -> {
+            JSObject status = buildStatus();
+            call.resolve(status);
+        });
     }
 
     private void startMonitoring() {
@@ -54,17 +75,17 @@ public class NetworkConnectivityPlugin extends Plugin {
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override
             public void onAvailable(Network network) {
-                emitIfChanged();
+                executor.execute(() -> emitIfChanged());
             }
 
             @Override
             public void onLost(Network network) {
-                emitIfChanged();
+                executor.execute(() -> emitIfChanged());
             }
 
             @Override
             public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities) {
-                emitIfChanged();
+                executor.execute(() -> emitIfChanged());
             }
         };
 
@@ -112,9 +133,6 @@ public class NetworkConnectivityPlugin extends Plugin {
         NetworkCapabilities caps = cm.getNetworkCapabilities(activeNetwork);
 
         boolean connected = activeNetwork != null && caps != null;
-        boolean validated =
-            caps != null &&
-            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
 
         boolean isWifi =
             caps != null &&
@@ -135,21 +153,61 @@ public class NetworkConnectivityPlugin extends Plugin {
             type = "unknown";
         }
 
+        boolean internetReachable = connected && probeInternet();
+
         String state;
         if (!connected) {
             state = "offline";
-        } else if (validated) {
+        } else if (internetReachable) {
             state = "online";
         } else {
             state = "limited";
         }
 
         ret.put("connected", connected);
-        ret.put("internetReachable", validated);
+        ret.put("internetReachable", internetReachable);
         ret.put("connectionType", type);
         ret.put("state", state);
 
         return ret;
+    }
+
+    /**
+     * Fire concurrent HEAD requests to all probe URLs.
+     * Returns true as soon as any one succeeds, or false if all fail / timeout.
+     */
+    private boolean probeInternet() {
+        final AtomicBoolean reachable = new AtomicBoolean(false);
+        final CountDownLatch latch = new CountDownLatch(PROBE_URLS.length);
+
+        for (final String urlStr : PROBE_URLS) {
+            executor.execute(() -> {
+                try {
+                    HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
+                    conn.setRequestMethod("HEAD");
+                    conn.setConnectTimeout(PROBE_TIMEOUT_MS);
+                    conn.setReadTimeout(PROBE_TIMEOUT_MS);
+                    conn.setUseCaches(false);
+
+                    int code = conn.getResponseCode();
+                    conn.disconnect();
+
+                    if (code >= 200 && code < 400) {
+                        reachable.set(true);
+                    }
+                } catch (Exception ignored) {
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        try {
+            latch.await(PROBE_TIMEOUT_MS + 1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ignored) {
+        }
+
+        return reachable.get();
     }
 
     @Override
