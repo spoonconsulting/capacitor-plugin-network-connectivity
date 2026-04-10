@@ -9,14 +9,32 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 @CapacitorPlugin(name = "NetworkConnectivity")
 public class NetworkConnectivityPlugin extends Plugin {
 
-    private final NetworkConnectivity implementation = new NetworkConnectivity();
+    private final NetworkMonitor implementation = new NetworkMonitor();
+
+    @Override
+    public void load() {
+        implementation.startMonitoring(getContext(), status ->
+            notifyListeners("internetStatusChange", toJSObject(status))
+        );
+    }
 
     @PluginMethod
-    public void echo(PluginCall call) {
-        String value = call.getString("value");
+    public void getStatus(PluginCall call) {
+        call.resolve(toJSObject(implementation.getStatus()));
+    }
 
+    @Override
+    protected void handleOnDestroy() {
+        super.handleOnDestroy();
+        implementation.stopMonitoring();
+    }
+
+    private JSObject toJSObject(NetworkMonitor.InternetStatus status) {
         JSObject ret = new JSObject();
-        ret.put("value", implementation.echo(value));
-        call.resolve(ret);
+        ret.put("connected", status.connected);
+        ret.put("internetReachable", status.internetReachable);
+        ret.put("connectionType", status.connectionType);
+        ret.put("state", status.state);
+        return ret;
     }
 }
