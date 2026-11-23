@@ -1,6 +1,6 @@
 {
   "name": "@spoonconsulting/capacitor-plugin-network-connectivity",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Capacitor plugin that detects connection type and verifies actual internet access in real time.",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
