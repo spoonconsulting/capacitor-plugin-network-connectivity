@@ -6,13 +6,24 @@ public class NetworkConnectivityPlugin: CAPPlugin, CAPBridgedPlugin {
     public let identifier = "NetworkConnectivityPlugin"
     public let jsName = "NetworkConnectivity"
     public let pluginMethods: [CAPPluginMethod] = [
-        CAPPluginMethod(name: "echo", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "getStatus", returnType: CAPPluginReturnPromise)
     ]
 
-    private let implementation = NetworkConnectivity()
+    private let implementation = NetworkMonitor()
 
-    @objc func echo(_ call: CAPPluginCall) {
-        let value = call.getString("value") ?? ""
-        call.resolve(["value": implementation.echo(value)])
+    public override func load() {
+        implementation.startMonitoring { [weak self] status in
+            self?.notifyListeners("internetStatusChange", data: status.toDictionary())
+        }
+    }
+
+    @objc func getStatus(_ call: CAPPluginCall) {
+        implementation.getStatus { status in
+            call.resolve(status.toDictionary())
+        }
+    }
+
+    deinit {
+        implementation.stopMonitoring()
     }
 }
